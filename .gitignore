@@ -34,3 +34,8 @@ test-driver
 
 # Debugging files
 *.dSYM
+
+# Scons collateral
+/configure.conf
+/.sconsign.dblite
+/.build/*

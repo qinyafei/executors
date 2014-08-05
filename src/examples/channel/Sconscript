@@ -1,0 +1,28 @@
+Import('env') # We always need to do this
+
+env.BuildWith( 'boost' ) # This could be left out as it will be lazily
+                         # added when adding the boost libraries. If we
+                         # were not including libraries we'd still need
+                         # this to pull in include directories, defines
+                         # etc.
+
+env.AppendUnique( DYNAMICLIBS = [
+    env.BoostSharedLibrary( 'system' ),
+    env.BoostSharedLibrary( 'chrono' ),
+    env.BoostSharedLibrary( 'coroutine' ),
+    env.BoostSharedLibrary( 'context' ),
+] )
+
+# GlobFiles returns only the filenames of matching
+# files in the current sconscript folder. We use [:-4]
+# to strip the file extension from the filename to give
+# us a suitable target name for the process
+
+# The Build( target, sources ) method passes the source
+# files to the default toolchain for building. The build
+# output will be named as target
+
+for Source in env.GlobFiles('*.cpp'):
+    env.Build( Source[:-4], Source )
+
+
