@@ -12,9 +12,10 @@ def default_build_profile( env, toolchain, variant ):
         '#/include',
     ])
 
-    env.AppendUnique( CXXFLAGS = [
-        '-Wno-unused-local-typedefs'
-    ])
+    if toolchain.family() == "gcc":
+        env.AppendUnique( CXXFLAGS = [
+            '-Wno-unused-local-typedefs'
+        ])
 
 
 # Initialise any defaults
