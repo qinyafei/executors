@@ -11,6 +11,7 @@ env.AppendUnique( DYNAMICLIBS = [
     env.BoostSharedLibrary( 'chrono' ),
     env.BoostSharedLibrary( 'coroutine' ),
     env.BoostSharedLibrary( 'context' ),
+    env.BoostSharedLibrary( 'thread' ),
 ] )
 
 # GlobFiles returns only the filenames of matching

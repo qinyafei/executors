@@ -5,6 +5,7 @@ env.AppendUnique( DYNAMICLIBS = [
     env.BoostSharedLibrary( 'chrono' ),
     env.BoostSharedLibrary( 'coroutine' ),
     env.BoostSharedLibrary( 'context' ),
+    env.BoostSharedLibrary( 'thread' ),
 ] )
 
 for Source in env.GlobFiles('*.cpp'):
