@@ -1,6 +1,7 @@
 #include <experimental/executor>
 #include <experimental/thread_pool>
 #include <iostream>
+#include <string>
 
 using std::experimental::dispatch;
 using std::experimental::get_associated_executor;
@@ -17,7 +18,7 @@ void async_getline(std::istream& is, Handler handler)
   auto work = make_work(handler);
 
   // Post a function object to do the work asynchronously.
-  post([&is, work, handler=std::move(handler)]
+  post([&is, work, handler=std::move(handler)]() mutable
       {
         std::string line;
         std::getline(is, line);
