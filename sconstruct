@@ -16,6 +16,9 @@ def default_build_profile( env, toolchain, variant ):
         env.AppendUnique( CXXFLAGS = [
             '-Wno-unused-local-typedefs'
         ])
+        env.AppendUnique( LINKFLAGS = [
+            '-Wl,--no-as-needed'
+        ])
 
 
 # Initialise any defaults
