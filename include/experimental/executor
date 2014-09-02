@@ -115,6 +115,7 @@ private:
   execution_context& _M_context;
   const type_info* _M_id;
   service* _M_next;
+  bool _M_shutdown;
 };
 
 // Functions for accessing the services within an execution context.
@@ -180,7 +181,9 @@ using associated_executor_t = typename associated_executor<_T, _Executor>::type;
 template <class _T, class _Executor>
 class executor_wrapper
   : public __executor_wrapper_base_executor<_Executor>,
-    public __executor_wrapper_base_wrapped<_T>
+    public __executor_wrapper_base_wrapped<_T>,
+    public __executor_wrapper_base_argument_type<_T>,
+    public __executor_wrapper_base_argument_types<_T>
 {
 public:
   typedef _T wrapped_type;
