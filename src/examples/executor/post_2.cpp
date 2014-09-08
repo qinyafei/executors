@@ -26,11 +26,13 @@ int main(int argc, char* argv[])
 
   std::vector<work> work_list(std::atoi(argv[1]));
 
-  // Spawn a large amount of work and join on the pool to complete.
+  // Start a large amount of work and join on the pool to complete.
   thread_pool tp(16);
   for (auto work: work_list)
   {
-    post(tp, [work]{
+    post(tp,
+      [work]
+      {
         do_something(work);
       });
   }
