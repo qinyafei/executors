@@ -20,7 +20,7 @@ namespace std {
 namespace experimental {
 inline namespace concurrency_v1 {
 
-template <unsigned char __max = UCHAR_MAX>
+template <class _Purpose = void>
 class __small_block_recycler
 {
 public:
@@ -44,35 +44,6 @@ public:
   }
 #endif
 
-  template <class _T>
-  struct _Delete
-  {
-    _Delete() noexcept {}
-    template <class _U> _Delete(const _Delete<_U>&) {}
-    void operator()(_T* __p) const { _Instance()._Destroy(__p); }
-  };
-
-  template <class _T>
-  using _Unique_ptr = unique_ptr<_T, _Delete<_T>>;
-
-  template <class _T, class... _Args>
-  static _T* _Create(_Args&&... __args)
-  {
-    _Init __i;
-    __i._M_memory = __i._M_instance._Allocate(sizeof(_T));
-    __i._M_size = sizeof(_T);
-    _T* __p = new (__i._M_memory) _T(forward<_Args>(__args)...);
-    __i._M_memory = nullptr;
-    return __p;
-  }
-
-  template <class _T>
-  static void _Destroy(_T* __p)
-  {
-    __p->~_T();
-    _Instance()._Deallocate(__p, sizeof(_T));
-  }
-
   void* _Allocate(size_t __size)
   {
     if (_M_memory)
@@ -93,7 +64,7 @@ public:
 
     void* const __p = ::operator new(__size + 1);
     unsigned char* const __mem = static_cast<unsigned char*>(__p);
-    __mem[__size] = (__size <= __max) ? static_cast<unsigned char>(__size) : 0;
+    __mem[__size] = (__size <= UCHAR_MAX) ? static_cast<unsigned char>(__size) : 0;
     return __p;
   }
 
@@ -101,7 +72,7 @@ public:
   {
     if (__p)
     {
-      if (__size <= __max)
+      if (__size <= UCHAR_MAX)
       {
         if (_M_memory == 0)
         {
@@ -136,14 +107,6 @@ public:
   }
 
 private:
-  struct _Init
-  {
-    __small_block_recycler& _M_instance = _Instance();
-    void* _M_memory = nullptr;
-    size_t _M_size = 0;
-    ~_Init() { _M_instance._Deallocate(_M_memory, _M_size); }
-  };
-
   void* _M_memory;
   void* _M_next_memory;
 #if defined(__APPLE__) && defined(__clang__)
@@ -156,17 +119,17 @@ private:
 };
 
 #if defined(__APPLE__) && defined(__clang__)
-template <unsigned char __max>
-__thread __small_block_recycler<__max> __small_block_recycler<__max>::_S_instance;
+template <class _Purpose>
+__thread __small_block_recycler<_Purpose> __small_block_recycler<_Purpose>::_S_instance;
 #elif defined(_MSC_VER)
-template <unsigned char __max>
-__declspec(thread) __small_block_recycler<__max>* __small_block_recycler<__max>::_S_instance;
+template <class _Purpose>
+__declspec(thread) __small_block_recycler<_Purpose>* __small_block_recycler<_Purpose>::_S_instance;
 #else
-template <unsigned char __max>
-thread_local __small_block_recycler<__max> __small_block_recycler<__max>::_S_instance;
+template <class _Purpose>
+thread_local __small_block_recycler<_Purpose> __small_block_recycler<_Purpose>::_S_instance;
 #endif
 
-template <class _T>
+template <class _T, class _Purpose = void>
 class __small_block_allocator
 {
 public:
@@ -177,7 +140,7 @@ public:
   template <class _U>
   struct rebind
   {
-    typedef __small_block_allocator<_U> other;
+    typedef __small_block_allocator<_U, _Purpose> other;
   };
 
   __small_block_allocator()
@@ -185,7 +148,7 @@ public:
   }
 
   template <class _U>
-  __small_block_allocator(const __small_block_allocator<_U>&)
+  __small_block_allocator(const __small_block_allocator<_U, _Purpose>&)
   {
   }
 
@@ -196,17 +159,17 @@ public:
 
   _T* allocate(std::size_t __n)
   {
-    return static_cast<_T*>(__small_block_recycler<>::_Instance()._Allocate(__n * sizeof(_T)));
+    return static_cast<_T*>(__small_block_recycler<_Purpose>::_Instance()._Allocate(__n * sizeof(_T)));
   }
 
   void deallocate(_T* __p, std::size_t __n)
   {
-    __small_block_recycler<>::_Instance()._Deallocate(__p, __n * sizeof(_T));
+    __small_block_recycler<_Purpose>::_Instance()._Deallocate(__p, __n * sizeof(_T));
   }
 };
 
-template <>
-class __small_block_allocator<void>
+template <class _Purpose>
+class __small_block_allocator<void, _Purpose>
 {
 public:
   typedef void* pointer;
@@ -216,7 +179,7 @@ public:
   template <class _U>
   struct rebind
   {
-    typedef __small_block_allocator<_U> other;
+    typedef __small_block_allocator<_U, _Purpose> other;
   };
 
   __small_block_allocator()
@@ -224,7 +187,7 @@ public:
   }
 
   template <class _U>
-  __small_block_allocator(const __small_block_allocator<_U>&)
+  __small_block_allocator(const __small_block_allocator<_U, _Purpose>&)
   {
   }
 
@@ -248,6 +211,62 @@ struct __small_block_rebind<allocator<_T>, _U>
 
 template <class _Allocator, class _U>
 using __small_block_rebind_t = typename __small_block_rebind<_Allocator, _U>::_Type;
+
+template <class _Allocator, class _T>
+class __small_block_delete
+{
+public:
+  explicit __small_block_delete(const _Allocator& __a) noexcept
+    : _M_alloc(__a)
+  {
+  }
+
+  explicit __small_block_delete(const __small_block_rebind_t<_Allocator, _T>& __a) noexcept
+    : _M_alloc(__a)
+  {
+  }
+
+  template <class _OtherAllocator, class _U>
+  __small_block_delete(const __small_block_delete<_OtherAllocator, _U>& __d) noexcept
+    : _M_alloc(__d._M_alloc)
+  {
+  }
+
+  void operator()(_T* __p) const
+  {
+    __p->~_T();
+    _M_alloc.deallocate(__p, 1);
+  }
+
+private:
+  mutable __small_block_rebind_t<_Allocator, _T> _M_alloc;
+};
+
+template <class _Allocator, class _T>
+using __small_block_ptr = unique_ptr<_T, __small_block_delete<_Allocator, _T>>;
+
+template <class _T, class _Allocator, class... _Args>
+__small_block_ptr<_Allocator, _T> _Allocate_small_block(const _Allocator& __alloc, _Args&&... __args)
+{
+  __small_block_rebind_t<_Allocator, _T> __rebound_alloc(__alloc);
+  _T* __raw_p = __rebound_alloc.allocate(1);
+  try
+  {
+    _T* __p =  new (__raw_p) _T(forward<_Args>(__args)...);
+    return __small_block_ptr<_Allocator, _T>(__p, __small_block_delete<_Allocator, _T>(__rebound_alloc));
+  }
+  catch (...)
+  {
+    __rebound_alloc.deallocate(__raw_p, 1);
+    throw;
+  }
+}
+
+template <class _T, class _Allocator>
+inline __small_block_ptr<_Allocator, _T> _Adopt_small_block(const _Allocator& __alloc, _T* __p) noexcept
+{
+  return __small_block_ptr<_Allocator, _T>(__p, __small_block_delete<_Allocator, _T>(__alloc));
+}
 
 } // inline namespace concurrency_v1
 } // namespace experimental

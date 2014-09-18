@@ -42,6 +42,76 @@ protected:
   _T _M_wrapped;
 };
 
+template <class>
+struct __executor_wrapper_base_check
+{
+  typedef void _Type;
+};
+
+template <class _T, class = void>
+struct __executor_wrapper_base_argument_type
+{
+};
+
+template <class _R, class _Arg>
+struct __executor_wrapper_base_argument_type<_R(_Arg)>
+{
+  typedef _Arg argument_type;
+};
+
+template <class _R, class _Arg>
+struct __executor_wrapper_base_argument_type<_R(*)(_Arg)>
+{
+  typedef _Arg argument_type;
+};
+
+template <class _R, class _Arg>
+struct __executor_wrapper_base_argument_type<_R(&)(_Arg)>
+{
+  typedef _Arg argument_type;
+};
+
+template <class _T>
+struct __executor_wrapper_base_argument_type<_T,
+  typename __executor_wrapper_base_check<typename _T::argument_type>::_Type>
+{
+  typedef typename _T::argument_type argument_type;
+};
+
+template <class _T, class = void>
+struct __executor_wrapper_base_argument_types
+{
+};
+
+template <class _R, class _Arg1, class _Arg2>
+struct __executor_wrapper_base_argument_types<_R(_Arg1, _Arg2)>
+{
+  typedef _Arg1 first_argument_type;
+  typedef _Arg2 second_argument_type;
+};
+
+template <class _R, class _Arg1, class _Arg2>
+struct __executor_wrapper_base_argument_types<_R(*)(_Arg1, _Arg2)>
+{
+  typedef _Arg1 first_argument_type;
+  typedef _Arg2 second_argument_type;
+};
+
+template <class _R, class _Arg1, class _Arg2>
+struct __executor_wrapper_base_argument_types<_R(&)(_Arg1, _Arg2)>
+{
+  typedef _Arg1 first_argument_type;
+  typedef _Arg2 second_argument_type;
+};
+
+template <class _T>
+struct __executor_wrapper_base_argument_types<_T,
+  typename __executor_wrapper_base_check<typename _T::first_argument_type>::_Type>
+{
+  typedef typename _T::first_argument_type first_argument_type;
+  typedef typename _T::second_argument_type second_argument_type;
+};
+
 } // inline namespace concurrency_v1
 } // namespace experimental
 } // namespace std

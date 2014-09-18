@@ -1,4 +1,5 @@
 noinst_PROGRAMS = \
+	actor \
 	async_1 \
 	async_2 \
 	bank_account_1 \
@@ -11,6 +12,12 @@ noinst_PROGRAMS = \
 	bank_account_8 \
 	bank_account_9 \
 	fork_join \
+	pipeline \
+	post_1 \
+	post_2 \
+	post_3 \
+	post_4 \
+	post_5 \
 	priority_scheduler \
 	sort_1 \
 	sort_2 \
@@ -22,6 +29,7 @@ noinst_PROGRAMS = \
 
 AM_CXXFLAGS = -I$(srcdir)/../../../include
 
+actor_SOURCES = actor.cpp
 async_1_SOURCES = async_1.cpp
 async_2_SOURCES = async_2.cpp
 bank_account_1_SOURCES = bank_account_1.cpp
@@ -34,6 +42,12 @@ bank_account_7_SOURCES = bank_account_7.cpp
 bank_account_8_SOURCES = bank_account_8.cpp
 bank_account_9_SOURCES = bank_account_9.cpp
 fork_join_SOURCES = fork_join.cpp
+pipeline_SOURCES = pipeline.cpp
+post_1_SOURCES = post_1.cpp
+post_2_SOURCES = post_2.cpp
+post_3_SOURCES = post_3.cpp
+post_4_SOURCES = post_4.cpp
+post_5_SOURCES = post_5.cpp
 priority_scheduler_SOURCES = priority_scheduler.cpp
 sort_1_SOURCES = sort_1.cpp
 sort_2_SOURCES = sort_2.cpp
