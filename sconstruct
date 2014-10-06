@@ -1,9 +1,11 @@
-#-------------------------------------------------------------------------------
-#   sconstruct file
-#-------------------------------------------------------------------------------
-
-# Pull in all the Contruct goodies..
-from construct import Construct
+# Pull in all the Cuppa goodies..
+try:
+    import cuppa
+except ImportError:
+    print "Cuppa not found, installing..."
+    import subprocess, shlex
+    subprocess.call( shlex.split( 'pip install cuppa -t .' ) )
+    import cuppa
 
 
 def default_build_profile( env, toolchain, variant ):
@@ -16,12 +18,9 @@ def default_build_profile( env, toolchain, variant ):
         env.AppendUnique( CXXFLAGS = [
             '-Wno-unused-local-typedefs'
         ])
-        env.AppendUnique( LINKFLAGS = [
-            '-Wl,--no-as-needed'
-        ])
 
 
 # Initialise any defaults
-Construct(
+cuppa.run(
     default_profiles = [ default_build_profile ]
 )
